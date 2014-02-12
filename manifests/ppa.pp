@@ -4,7 +4,8 @@
 define apt::ppa(
   $release          = $::lsbdistcodename,
   $options          = '-y',
-  $exec_environment = undef
+  $exec_environment = undef,
+  $ensure           = 'present'
 ) {
   include apt
 
@@ -30,11 +31,20 @@ define apt::ppa(
     }
   }
 
-  exec { "add-apt-repository-${name}":
-    environment  => $exec_environment,
-    command      => "/usr/bin/add-apt-repository ${options} ${name} && apt-get update",
-    unless       => "/usr/bin/test -s ${sources_list_d}/${sources_list_d_filename}",
-    logoutput    => 'on_failure',
+  if $ensure == 'present' {
+    exec { "add-apt-repository-${name}":
+      environment  => $exec_environment,
+      command      => "/usr/bin/add-apt-repository ${options} ${name} && apt-get update",
+      unless       => "/usr/bin/test -s ${sources_list_d}/${sources_list_d_filename}",
+      logoutput    => 'on_failure',
+    }
+  } else {
+    exec { "ppa-purge-${name}":
+      environment  => $exec_environment,
+      command      => "/usr/sbin/ppa-purge ${options} ${name} && apt-get update",
+      unless       => "!/usr/bin/test -e ${sources_list_d}/${sources_list_d_filename}",
+      logoutput    => 'on_failure',
+    }
   }
 
 }
