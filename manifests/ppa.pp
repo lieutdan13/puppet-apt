@@ -42,7 +42,7 @@ define apt::ppa(
     exec { "ppa-purge-${name}":
       environment  => $exec_environment,
       command      => "/usr/sbin/ppa-purge ${options} ${name} && apt-get update",
-      unless       => "!/usr/bin/test -e ${sources_list_d}/${sources_list_d_filename}",
+      onlyif       => "/usr/bin/test -e ${sources_list_d}/${sources_list_d_filename}",
       logoutput    => 'on_failure',
     }
   }
